@@ -1,0 +1,13 @@
+---
+- name: Start VM
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Start VM
+      shell: qm start 999
+      register: command_output
+
+    - name: Display Command Output
+      debug:
+        var: command_output.stdout_lines
