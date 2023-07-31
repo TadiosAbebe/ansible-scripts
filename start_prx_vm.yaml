@@ -4,12 +4,12 @@
   gather_facts: false
 
   vars:
-    vmids_to_start: "{{ vmids_list | default([]) }}"
+    vmids: "{{ vmids_list | default([]) }}"
 
   tasks:
     - name: Start VMs
       shell: qm start {{ item }}
-      with_items: "{{ vmids_to_start }}"
+      with_items: "{{ vmids }}"
       register: command_output
 
     - name: Display Command Output
