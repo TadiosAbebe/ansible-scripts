@@ -1,0 +1,17 @@
+---
+- name: Start Proxmox VMs
+  hosts: all
+  gather_facts: false
+
+  vars:
+    vmids_to_start: "{{ vmids_list | default([]) }}"
+
+  tasks:
+    - name: Start VMs
+      shell: qm start {{ item }}
+      with_items: "{{ vmids_to_start }}"
+      register: command_output
+
+    - name: Display Command Output
+      debug:
+        var: command_output.results
