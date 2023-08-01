@@ -16,6 +16,9 @@
       set_fact:
         latest_snapshot: "{{ timeshift_output.stdout_lines[-1].split()[2] }}"
 
+    - debug:
+        var: timeshift_output.stdout_lines[-1]
+
     # Enable below to see which snapshot is selected
     # - debug:
     #     var: latest_snapshot
