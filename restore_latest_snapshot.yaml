@@ -24,4 +24,4 @@
     #     var: latest_snapshot
     
     - name: Restore from Timeshift Snapshot
-      shell: timeshift --restore {{ latest_snapshot }} --snapshot-device /dev/sda1 --skip-grub --yes --rsync --scripted
+      shell: timeshift --restore --snapshot {{ latest_snapshot }} --snapshot-device /dev/sda1 --skip-grub --yes --rsync --scripted
