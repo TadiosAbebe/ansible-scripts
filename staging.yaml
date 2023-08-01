@@ -13,10 +13,10 @@
 
     - name: Extract Latest Snapshot UUID
       set_fact:
-        latest_snapshot: "{{ timeshift_output.stdout_lines[-1].split()[0] }}"
+        latest_snapshot: "{{ timeshift_output.stdout_lines[-1].split()[2] }}"
 
     - debug:
         var: latest_snapshot
     
-    - name: Restore from Timeshift Snapshot
-      shell: timeshift --restore {{ latest_snapshot }} --snapshot-device /dev/sda1
+    # - name: Restore from Timeshift Snapshot
+    #   shell: timeshift --restore {{ latest_snapshot }} --snapshot-device /dev/sda1
