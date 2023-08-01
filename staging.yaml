@@ -1,17 +1,16 @@
 ---
-- name: Start Proxmox VMs
+- name: Restore from Timeshift Backup
   hosts: all
-  gather_facts: false
-
-  vars:
-    vmids_to_start: "{{ vmids_list | default([]) }}"
+  become: yes
 
   tasks:
-    - name: Start VMs
-      shell: qm start {{ item }}
-      with_items: "{{ vmids_to_start }}"
-      register: command_output
+    - name: List Timeshift Snapshots
+      shell: timeshift --list --snapshot-device /dev/sda1
+      register: timeshift_output
 
-    - name: Display Command Output
-      debug:
-        var: command_output.results
+    - name: Extract Latest Snapshot UUID
+      set_fact:
+        latest_snapshot: "{{ timeshift_output.stdout_lines[-1].split()[0] }}"
+    
+    - name: Restore from Timeshift Snapshot
+      shell: timeshift --restore {{ latest_snapshot }} --snapshot-device /dev/sda1
