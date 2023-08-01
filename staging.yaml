@@ -8,9 +8,8 @@
       shell: timeshift --list --snapshot-device /dev/sda1
       register: timeshift_output
 
-    - name: Display Command Output
-      debug:
-        var: timeshift_output.results
+    - debug:
+        var: timeshift_output.stdout_lines
 
     - name: Extract Latest Snapshot UUID
       set_fact:
