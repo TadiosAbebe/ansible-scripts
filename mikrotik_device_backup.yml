@@ -1,0 +1,66 @@
+---
+
+- name: Get timestamp and define backup path
+  hosts: localhost
+  tasks:
+    - name: Get timestamp
+      shell: "date +%Y-%m-%d%H-%M-%S"
+      register: tstamp
+
+    - name: Set global timestamp fact
+      set_fact:
+        global_tstamp: "{{ tstamp.stdout }}"
+
+    - name: Get today's date for backup directory
+      shell: "date +%Y-%m-%d"
+      register: current_date
+
+    - name: Define backup path with date-based subdirectory
+      set_fact:
+        backup_path: "backups/{{ current_date.stdout }}"
+
+    - name: Create daily backup directory if it doesn't exist
+      file:
+        path: "{{ backup_path }}"
+        state: directory
+        mode: '0755'
+
+- name: Perform backup on the device
+  hosts: MIKROTIK
+  gather_facts: false
+  vars_files:
+    - group_vars/MIKROTIK/vault.yml
+  vars:
+    ansible_password: "{{ mikrotik_password }}"
+  tasks:
+
+    - name: "Starting ROS System Backup"
+      routeros_command:
+        commands: /system backup save name=automated-backup-{{ inventory_hostname  }}
+
+    - name: "Starting ROS Configuration Backup"
+      routeros_command:
+        commands: /export
+      register: export_output
+
+    - name: "Wait for 10 seconds before file transfer to allow for file system sync"
+      pause:
+        seconds: 10
+
+    - name: Copying ROS Configuration Backup to Local Host
+      ansible.builtin.copy:
+        content: "{{ export_output.stdout[0] }}"
+        dest: "{{ hostvars['localhost']['backup_path'] }}/{{ inventory_hostname }}-{{ hostvars['localhost']['global_tstamp'] }}.rsc"
+      when: export_output.stdout is defined
+    - name: Enable FTP service for backup transfer
+      routeros_command:
+        commands: /ip service set [find name=ftp] port={{ ansible_ftp_port | default(21) }} disabled=no
+    - name: Download system backup file via FTP
+      shell: >
+        curl -s -o "{{ hostvars['localhost']['backup_path'] }}/{{ inventory_hostname }}-{{ hostvars['localhost']['global_tstamp'] }}.backup"
+        ftp://{{ ansible_host }}:{{ ansible_ftp_port | default(21) }}/automated-backup-{{ inventory_hostname }}.backup
+        --user {{ mikrotik_username }}:{{ mikrotik_password }}
+      delegate_to: localhost
+    - name: Disable FTP service after transfer
+      routeros_command:
+        commands: /ip service disable [find name=ftp]
