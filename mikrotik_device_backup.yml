@@ -29,10 +29,6 @@
 - name: Perform backup on the device
   hosts: MIKROTIK
   gather_facts: false
-  vars_files:
-    - group_vars/MIKROTIK/vault.yml
-  vars:
-    ansible_password: "{{ mikrotik_password }}"
   tasks:
 
     - name: "Starting ROS System Backup"
